@@ -1,0 +1,117 @@
+<canvas id="cnv" width=400 height=400></canvas>
+<br>
+<label style="font-family: Arial, Helvetica, sans-serif; font-size: 10px;">(Presiona ESPACIO para detener)</label>
+<script>
+
+mrg = 20;
+width = document.getElementById("cnv").width-(2*mrg);
+height = document.getElementById("cnv").height-(2*mrg);
+anchoCelda = width/9;
+altoCelda = height/9
+cuenta = {};
+cont = 1;
+window.onload = function()
+{
+    canv = document.getElementById("cnv")
+    ctx = canv.getContext("2d")
+    iniciaTablero();
+    game();
+    document.addEventListener("keydown",keyPush);
+    setInterval(game,1000/300)
+}
+
+function keyPush(evt)
+{
+    switch(evt.keyCode) {
+		case 32:
+			if(cont == 0)
+                cont = 1;
+            else
+                cont = 0;
+			break;}
+}
+
+function iniciaTablero()
+{
+    ctx.fillStyle="lightblue";
+    // ctx.linewidth=2;
+    ctx.fillRect(0,0,canv.width,canv.height);
+}
+
+function game()
+{
+    if(cont == 1)
+    {   
+        iniciaTablero();
+        pintaGrilla();
+        gameRandom();
+        pintaContadores();
+    }
+}
+
+function pintaGrilla()
+{
+    ctx.strokeRect(mrg,mrg,width,height);
+    for(i=1;i<10;i++)
+    {
+        for(j=1;j<10;j++)
+        {   
+            ctx.lineWidth = 1;
+            ctx.strokeStyle="black";
+            ctx.strokeRect(mrg+(anchoCelda*(i-1)),mrg+(altoCelda*(j-1)),anchoCelda,altoCelda);
+            if((i%3==1) && (j%3 == 1) && (i<10) && (j<10))
+            {
+                ctx.strokeStyle="black";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(mrg+(anchoCelda*(i-1)),mrg+(altoCelda*(j-1)),anchoCelda*3,altoCelda*3);
+            }
+
+        }
+    }
+}
+
+function pintaContadores()
+{
+    ctx.fillStyle="red"
+    var v = Object.keys(cuenta)
+    for(i=0;i<v.length;i++)
+    {
+        var llave = v[i];
+        var coord = llave.split(',');
+        var cX = coord[0];
+        cX = mrg+(anchoCelda*cX)
+        var cY = coord[1];
+        cY = mrg+(anchoCelda*cY)
+        ctx.font = "10px Arial";
+        ctx.fillText(cuenta[llave],cX+8,cY+13);
+    }
+}
+
+
+function gameRandom()
+{
+    ale1 = aleCelda();
+    ale2 = aleCelda();
+    
+    val = ale1+','+ale2;
+    if(cuenta[val] != undefined)
+        cuenta[val] = cuenta[val] + 1;
+    else
+        cuenta[val] = 1;
+    ctx.fillStyle="yellow";
+    posX = mrg+(anchoCelda*ale1);
+    posY = mrg+(altoCelda*ale2);
+    ctx.fillRect(posX,posY,anchoCelda,altoCelda);    
+}
+
+function aleCelda()
+{
+    ale = 0;
+    do
+    {
+        ale = Math.floor(Math.random()*10);
+        }
+        while(ale>=9)
+        return ale;
+}
+</script>
