@@ -24,7 +24,9 @@ NUM_6 = 54;
 NUM_7 = 55;
 NUM_8 = 56;
 NUM_9 = 57;
-MAX_AUTOG = 20;
+VALOR_AUTOGENERADO = 1;
+VALOR_MANUAL = 0;
+MAX_AUTOG = 40;
 
 window.onload = function()
 {
@@ -33,7 +35,7 @@ window.onload = function()
     dibujarTablero();
     game();
     document.addEventListener("keydown",keyPush);
-    setInterval(game,1000/300)
+    setInterval(game,1000/500);
 }
 
 function keyPush(evt)
@@ -90,12 +92,33 @@ function keyPush(evt)
 
 function asignaValorCasillaActual(valor)
 {
-    tipoValor = 0;
+    // tipoValor = 0;
     key = curX+','+curY;
-    if(validarValorEnColumna(valor))
-        cuenta[key] = valor+','+tipoValor
+    // if(validarValorEnCruzCursor(valor))
+    if(validaValorCasillaGrillaCursor(valor))
+        cuenta[key] = valor+','+VALOR_MANUAL;
     else
         alert('no se puede!');
+}
+
+function validaValorCasillaGrillaCursor(valor)
+{
+    var cruzValida = validarValorEnCruzCursor(valor);
+    var cuadranteValido = validaValorEnCuadranteCursor(valor);
+    if(cruzValida && cuadranteValido)
+        return true;
+    else
+        return false;
+}
+
+function validaValorCasillaGrillaCoord(valor,x,y)
+{
+    var cruzValida = validarValorEnCruzCoord(valor,x,y);
+    var cuadranteValido = validaValorEnCuadranteCoord(valor,x,y);
+    if(cruzValida && cuadranteValido)
+        return true;
+    else
+        return false;
 }
 
 function cambiaCoordenadaCursor(x,y)
@@ -174,72 +197,98 @@ function pintaContadores()
         cY = mrg+(altoCelda*cY)+(altoCelda/2)+5
         var dato = cuenta[llave].split(',')[0];
         var tipoDato = cuenta[llave].split(',')[1];
-        if(tipoDato == 1)
+        if(tipoDato == VALOR_AUTOGENERADO)
+        {
             ctx.font = "12px Arial";
+            ctx.fillStyle = "black";
+        }
         else
+        {
             ctx.font = "15px Arial";
+            ctx.fillStyle = "red";
+        }
         ctx.fillText(dato,cX,cY);
     }
 }
 
-function validarValorEnCruz(valor,x,y)
+function validarValorEnCruzCoord(valor,x,y)
 {
-    if(validarValorEnColumna(valor,x) && validarValorEnFila(valor,y))
+    if(validarValorEnColumnaCoord(valor,x) && validarValorEnFilaCoord(valor,y))
         return true;
     else
         return false;
 }
 
-function validarValorEnCruz(valor)
+function validarValorEnCruzCursor(valor)
 {
-    if(validarValorEnColumna(valor) && validarValorEnFila(valor))
+    if(validarValorEnColumnaCursor(valor) && validarValorEnFilaCursor(valor))
         return true;
     else
         return false;
 }
 
-function validarValorEnFila(valor)
+function validarValorEnFilaCursor(valor)
 {
-    var key = 0;
-    for(i=0;i<9;i++)
-    {
-        key = curX+','+i;
-        if(cuenta[key] == valor)
-            return false;
-    }
-}
-
-function validarValorEnFila(valor,x)
-{
-    var key = 0;
-    for(i=0;i<9;i++)
-    {
-        key = x+','+i;
-        if(cuenta[key] == valor)
-            return false;
-    }
-}
-
-function validarValorEnColumna(valor)
-{
-    var key = 0;
+    var key,valorCelda;
     for(i=0;i<9;i++)
     {
         key = i+','+curY;
-        if(cuenta[key] == valor)
-            return false;
+        if(cuenta[key]!=undefined)
+        {   
+            valorCelda = cuenta[key].split(',')[0];
+            if(valorCelda == valor)
+                return false;
+        }
     }
+    return true;
 }
 
-function validarValorEnColumna(valor,y)
+function validarValorEnFilaCoord(valor,y)
 {
-    var key = 0;
+    var key,valorCelda;
     for(i=0;i<9;i++)
     {
         key = i+','+y;
-        if(cuenta[key] == valor)
-            return false;
+        if(cuenta[key]!=undefined)
+        {   
+            valorCelda = cuenta[key].split(',')[0];
+            if(valorCelda == valor)
+                return false;
+        }
     }
+    return true;
+}
+
+function validarValorEnColumnaCursor(valor)
+{
+    var key,valorCelda;
+    for(i=0;i<9;i++)
+    {
+        key = curX+','+i;
+        if(cuenta[key]!=undefined)
+        {   
+            valorCelda = cuenta[key].split(',')[0];
+            if(valorCelda == valor)
+                return false;
+        }
+    }
+    return true;
+}
+
+function validarValorEnColumnaCoord(valor,x)
+{
+    var key,valorCelda;
+    for(i=0;i<9;i++)
+    {
+        key = x+','+i;
+        if(cuenta[key]!=undefined)
+        {    
+            valorCelda = cuenta[key].split(',')[0];
+            if(valorCelda == valor)
+                return false;
+        }
+    }
+    return true;
 }
 
 function agregarNumeroAleatorio()
@@ -247,18 +296,26 @@ function agregarNumeroAleatorio()
     var elementos = Object.keys(cuenta)
     if(elementos.length >= MAX_AUTOG)
         return;
-     tipoValor = 1 
+    //  tipoValor = VALOR_AUTOGENERADO; 
     // valor = generarValorCelda(9,1);
     cX = generarCoordenadaCelda();
     cY = generarCoordenadaCelda();
-    
-    var numsDisp = valoresDisponiblesCelda(cX,cY);
+    key = cX+','+cY;
+    if(cuenta[key] != undefined)
+        return false;
+    var numsDisp = valoresDisponiblesCeldaCoord(cX,cY);
+    numsDisp = valoresDisponiblesCeldaCuadrante(cX,cY,numsDisp);
+    console.log("nums disp:"+numsDisp);
     var largoNumDisp = numsDisp.length;
-     var indice = generarValorCelda(0,largoNumDisp-1);
-    valor = numsDisp[indice];
+    // do
+    // {
+        var indice = generarValorCelda(0,largoNumDisp-1);
+        valor = numsDisp[indice];
+    // }while(!validaValorEnCuadranteCoord(valor,cX,cY))
+
     key = cX+','+cY;
         if(cuenta[key] == undefined)
-            cuenta[key] = valor+','+tipoValor
+            cuenta[key] = valor+','+VALOR_AUTOGENERADO
 }
 
 function generarCoordenadaCelda()
@@ -281,33 +338,33 @@ function generarValorCelda(min,max)
     return ale;
 }
 
-function valoresDisponiblesCelda()
-{
-    var key = 0;
-    var nums = [1,2,3,4,5,6,7,8,9]
-    for(i=0;i<9;i++)
-    {
-        keyH = curX+','+i;
-        if(cuenta[keyH] != undefined)
-        {
-            var valor = cuenta[keyH];
-            valor = valor.split(',')[0];
-            nums.splice(nums.indexOf(parseInt(valor)),1)
-        }
+// function valoresDisponiblesCelda()
+// {
+//     var key = 0;
+//     var nums = [1,2,3,4,5,6,7,8,9]
+//     for(i=0;i<9;i++)
+//     {
+//         keyH = curX+','+i;
+//         if(cuenta[keyH] != undefined)
+//         {
+//             var valor = cuenta[keyH];
+//             valor = valor.split(',')[0];
+//             nums.splice(nums.indexOf(parseInt(valor)),1)
+//         }
 
-        keyV = i+','+curY;
-        if(cuenta[keyV] != undefined)
-        {
-            var valor = cuenta[keyV];
-            valor = valor.split(',')[0];
-            nums.splice(nums.indexOf(parseInt(valor)),1)
-        }
-    }
-    console.log(nums);
-    return nums;
-}
+//         keyV = i+','+curY;
+//         if(cuenta[keyV] != undefined)
+//         {
+//             var valor = cuenta[keyV];
+//             valor = valor.split(',')[0];
+//             nums.splice(nums.indexOf(parseInt(valor)),1)
+//         }
+//     }
+//     console.log(nums);
+//     return nums;
+// }
 
-function valoresDisponiblesCelda(cX,cY)
+function valoresDisponiblesCeldaCoord(cX,cY)
 {
     var key = 0;
     var nums = [1,2,3,4,5,6,7,8,9]
@@ -327,9 +384,89 @@ function valoresDisponiblesCelda(cX,cY)
             var valor = cuenta[keyV];
             valor = valor.split(',')[0];
             nums.splice(nums.indexOf(parseInt(valor)),1)
+        }    
+    }
+    return nums;
+}
+
+function valoresDisponiblesCeldaCuadrante(cX,cY,nums)
+{
+    var cuadrante = ObtenerCuadranteCoord(cX,cY);
+    var key = 0;
+    var indice;
+    // var nums = [1,2,3,4,5,6,7,8,9]
+    for(i=0;i<3;i++)
+    {
+        for(j=0;j<3;j++)
+        {
+            key = ((cuadrante.ccX*3)+i)+','+((cuadrante.ccY*3)+j);
+            if(cuenta[key] != undefined)
+            {
+                var valor = cuenta[key];
+                valor = valor.split(',')[0];
+                indice = nums.indexOf(parseInt(valor))
+                if(indice>-1)
+                    nums.splice(nums.indexOf(parseInt(valor)),1)
+            }
         }
     }
-    console.log(nums);
     return nums;
+}
+
+function ObtenerCuadranteCursor()
+{
+    ccX = parseInt(curX/3);
+    ccY = parseInt(curY/3);
+    return {ccX,ccY} 
+}
+
+function ObtenerCuadranteCoord(x,y)
+{
+    ccX = parseInt(x/3);
+    ccY = parseInt(y/3);
+    return {ccX,ccY} 
+}
+
+
+
+function validaValorEnCuadranteCursor(valor)
+{
+    var cuadrante = ObtenerCuadranteCursor();
+    var key,valorCelda;
+    for(i=0;i<3;i++)
+    {
+        for(j=0;j<3;j++)
+        {
+            key = (cuadrante.ccX+i)+','+(cuadrante.ccY+j)
+            if(cuenta[key]!=undefined)
+            valorCelda = cuenta[key].split(',')[0];
+
+            if(valorCelda == valor)
+                return false;
+        }
+    }
+    return true;
+}
+
+
+
+function validaValorEnCuadranteCoord(valor,x,y)
+{
+    var cuadrante = ObtenerCuadranteCoord(x,y);
+    var key,valorCelda;
+    for(i=0;i<3;i++)
+    {
+        for(j=0;j<3;j++)
+        {
+            key = (cuadrante.ccX+i)+','+(cuadrante.ccY+j)
+            if(cuenta[key]!=undefined)
+            {
+                valorCelda = cuenta[key].split(',')[0];
+                if(valorCelda == valor)
+                    return false;
+            }
+        }
+    }
+    return true;
 }
 </script>
