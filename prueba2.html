@@ -6,6 +6,12 @@
         <canvas id="cnv" width=400 height=400></canvas>
     </body>
     <script>
-        var tablero = new TableroSudoku("cnv");
+        var tablero = new TableroSudoku("cnv","lightblue","black");
+        document.addEventListener("keydown", controladorInputs);
+        function controladorInputs(evt)
+        {
+            tablero.controladorInputs(evt.keyCode);
+        }
+        tablero.dibujaTablero();
     </script>
 </html>
