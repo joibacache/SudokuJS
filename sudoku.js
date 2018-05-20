@@ -77,6 +77,13 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
                                 (this.cursor.coordenadaAnt.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
                                 this.dimensiones.celda.ancho,
                                 this.dimensiones.celda.ancho);
+            
+            var coordsCuadrante = this.cursor.coordenadaAnt.obtenerCuadranteCoordenada();
+            this.anchoLinea(3);
+            this.ctxGr.strokeRect((coordsCuadrante.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
+                                (coordsCuadrante.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
+                                this.dimensiones.celda.ancho*3,
+                                this.dimensiones.celda.ancho*3);
         }
     }
     
@@ -141,7 +148,8 @@ function Cursor(color)
         ABA : 40,
     }
 
-    this.coordenada = new Coordenada(1,1);
+     this.coordenada = new Coordenada(1,1);
+
     this.coordenadaAnt;
 
     this.traducirKeyCodeDelta = function(keyCode){
@@ -170,7 +178,7 @@ function Cursor(color)
         this.delta = this.traducirKeyCodeDelta(keyCode);
         if(this.delta == undefined)
             return false;
-            
+
         //Izquierda
         if(this.delta.x<0 && this.coordenada.x>1)
         {
@@ -203,4 +211,14 @@ function Coordenada(x,y)
 {
     this.x = x;
     this.y = y;
+    //Retorna un objeto coordenada, pero sin la función obtenerCuadranteCoordenada para evitar posibles ciclos infinitos
+    this.obtenerCuadranteCoordenada = function()
+    {
+        var cX = (Math.ceil(this.x/3)*3)-2;
+        var cY = (Math.ceil(this.y/3)*3)-2;
+
+        var coord = new Coordenada(cX,cY);
+        delete coord.obtenerCuadranteCoordenada;
+        return coord;
+    }
 }
