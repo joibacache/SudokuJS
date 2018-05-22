@@ -148,7 +148,8 @@
             }
         },
 
-        pintaContadores: function () {
+        pintaContadores: function() 
+        {
             ctx.fillStyle = "red"
             var v = Object.keys(cuenta)
             for (i = 0; i < v.length; i++) {
@@ -189,12 +190,8 @@
             numsDisp = valoresDisponiblesCeldaCuadrante(cX, cY, numsDisp);
             console.log("nums disp:" + numsDisp);
             var largoNumDisp = numsDisp.length;
-            // do
-            // {
             var indice = generarValorCelda(0, largoNumDisp - 1);
             valor = numsDisp[indice];
-            // }while(!validaValorEnCuadranteCoord(valor,cX,cY))
-
             key = cX + ',' + cY;
             if (cuenta[key] == undefined)
                 cuenta[key] = valor + ',' + VALOR_AUTOGENERADO

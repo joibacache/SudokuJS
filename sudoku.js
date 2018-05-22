@@ -2,11 +2,22 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
 {
     this.colorFondo = colorFondo;
     this.colorCursor = colorCursor;
-    this.celdas = {};
+    this.colorValorCursor = "red";
+    this.celdas = [];
+    this.celdasNulas = [];
+    for(i=1;i<10;i++)
+        for(j=1;j<10;j++)
+            this.celdasNulas[i+','+j] = undefined;
     this.columnas = {};
     this.canvas = document.getElementById(canvasContenedor);
     this.ctxGr = this.canvas.getContext("2d");
     this.cursor = new Cursor(colorCursor);
+    this.limpiaPosicionAnterior = true;
+    this.VALOR_AUTOGENERADO = 1;
+    this.TOTAL_CASILLAS = 81;
+    this.NUM_CELDAS_INICIALES = 81;
+    this.MAX_INTENTOS_ALEATORIOS = 30;
+    this.genNumerico = new GeneradorNumerico();
     
     //Dibuja la cuadricula y el cursor en su posición inicial.
     this.dibujaTablero = function()
@@ -47,7 +58,6 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
                 }
             }
         }
-        this.actualizaPosicionCursor(false);
     }
 
     this.controladorInputs = function(keyCode)
@@ -56,37 +66,6 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
             this.actualizaPosicionCursor(true);
     };
 
-    this.actualizaPosicionCursor = function(borraPosicionAnterior)
-    {
-        this.colorFiguraTexto(this.colorCursor);
-        this.ctxGr.fillRect((this.cursor.coordenada.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
-                            (this.cursor.coordenada.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
-                            this.dimensiones.celda.ancho,
-                            this.dimensiones.celda.ancho);
-        
-        if(borraPosicionAnterior)
-        {
-            this.colorFiguraTexto(this.colorFondo);
-            this.ctxGr.fillRect((this.cursor.coordenadaAnt.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
-                                (this.cursor.coordenadaAnt.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
-                                this.dimensiones.celda.ancho,
-                                this.dimensiones.celda.ancho);
-            this.anchoLinea(1);
-            this.colorLinea(colorCursor);
-            this.ctxGr.strokeRect((this.cursor.coordenadaAnt.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
-                                (this.cursor.coordenadaAnt.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
-                                this.dimensiones.celda.ancho,
-                                this.dimensiones.celda.ancho);
-            
-            var coordsCuadrante = this.cursor.coordenadaAnt.obtenerCuadranteCoordenada();
-            this.anchoLinea(3);
-            this.ctxGr.strokeRect((coordsCuadrante.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
-                                (coordsCuadrante.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
-                                this.dimensiones.celda.ancho*3,
-                                this.dimensiones.celda.ancho*3);
-        }
-    }
-    
     this.colorLinea = function(color)
     {
         this.ctxGr.strokeStyle = color;
@@ -118,11 +97,65 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
             ancho:(this.canvas.height/10) * 9}
     };
 
+    this.actualizaPosicionCursor = function(limpiaPosicionAnterior)
+    {
+        this.pintaCursor();
+        if(this.celdas[this.cursor.coordenada.llave()]!=undefined)
+        {    
+            // console.log(this.celdas[this.cursor.coordenada.llave()].split(',')[0])
+            this.pintaValorCelda(this.cursor.coordenada.x,this.cursor.coordenada.y,this.celdas[this.cursor.coordenada.llave()].split(',')[0],true);
+        }
+        if(limpiaPosicionAnterior)
+        {
+            this.borraCursorPosicionAnterior();
+            if(this.celdas[this.cursor.coordenadaAnt.llave()]!=undefined)
+                this.pintaValorCelda(this.cursor.coordenadaAnt.x,this.cursor.coordenadaAnt.y,this.celdas[this.cursor.coordenadaAnt.llave()].split(',')[0],false);       
+            
+        }
+    }
+
     this.inicializarFilas = function()
     {
-        for(i=1;i<10;i++)
-        for(j=1;j<10;j++)
-            this.celdas[i+','+j] = 0;
+        var cont = 0;
+        if(Object.keys(this.celdas).length == this.TOTAL_CASILLAS)
+            return false;
+        while(cont<this.NUM_CELDAS_INICIALES)
+        {
+            var key = this.obtenerCoordCeldaVacia(this.celdas);
+            valores = this.obtenerNumerosDisponiblesCelda(key.x,key.y);
+            var indice = Math.ceil(Math.random()*(valores.length-1));
+            valor = valores[indice];
+            if(valor == undefined)
+            {
+                console.log('undefined!');
+                continue;
+            }
+            // console.log(valores+','+indice+','+valor);
+            // if (this.celdas[key.x+','+key.y] == undefined)
+            this.celdas[key.x+','+key.y] = valor + ',' + this.VALOR_AUTOGENERADO
+            this.pintaValorCelda(key.x,key.y,valor,false);       
+            cont++;         
+        }
+    }
+
+    this.obtenerCoordCeldaVacia = function(celdasUtilizadas)
+    {
+        var coordValidas = false;
+        var llave;
+        var retorno;
+        var contA = 0;
+        var cn = Object.keys(this.celdasNulas);
+        var cu = celdasUtilizadas == undefined ? []:Object.keys(celdasUtilizadas);
+        var cd = cn.filter(x=>cu.indexOf(x)==-1);
+
+        var coordAle;
+        do
+        {
+            coordAle = Math.floor(Math.random() * (cd.length-1));
+        } while(coordAle > cd.length)
+        
+        var coord = cd[coordAle].split(',');
+        return {x:parseInt(coord[0]),y:parseInt(coord[1])};
     }
 
     this.despliegaNumeros = function()
@@ -131,11 +164,94 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
         for(i=0;i<indices.length;i++)
         {
             console.log(indices[i]);
-
         }
     }
-}
 
+    this.pintaCursor = function()
+    {
+        this.colorFiguraTexto(this.colorCursor);
+        this.ctxGr.fillRect((this.cursor.coordenada.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
+                            (this.cursor.coordenada.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
+                            this.dimensiones.celda.ancho,
+                            this.dimensiones.celda.ancho);
+    }
+    
+    this.pintaValorCelda = function(x,y,valor,esCursor)
+    {
+        this.ctxGr.font = "12px Arial";
+        if(esCursor)
+            this.ctxGr.fillStyle = this.colorValorCursor;
+        else
+            this.ctxGr.fillStyle = this.colorCursor;
+        this.ctxGr.fillText(valor,
+                            (x*this.dimensiones.celda.ancho)-3,
+                            (y*this.dimensiones.celda.alto)+5);
+    }
+
+    this.borraCursorPosicionAnterior = function()
+    {
+        this.colorFiguraTexto(this.colorFondo);
+        this.ctxGr.fillRect((this.cursor.coordenadaAnt.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
+                            (this.cursor.coordenadaAnt.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
+                            this.dimensiones.celda.ancho,
+                            this.dimensiones.celda.ancho);
+        this.anchoLinea(1);
+        this.colorLinea(colorCursor);
+        this.ctxGr.strokeRect((this.cursor.coordenadaAnt.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
+                            (this.cursor.coordenadaAnt.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
+                            this.dimensiones.celda.ancho,
+                            this.dimensiones.celda.ancho);
+        
+        var coordsCuadrante = this.cursor.coordenadaAnt.obtenerCuadranteCoordenada();
+        this.anchoLinea(3);
+        this.ctxGr.strokeRect((coordsCuadrante.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
+                            (coordsCuadrante.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
+                            this.dimensiones.celda.ancho*3,
+                            this.dimensiones.celda.ancho*3);
+    }
+
+    this.obtenerNumerosDisponiblesCelda = function(x,y)
+    {
+        var nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        var numsExistentes=[];
+        for(i = 1;i<10;i++)
+        {
+            indX = x+','+i;
+            // console.log(indX);
+            if(this.celdas[indX]!=undefined)
+                if(numsExistentes.indexOf(this.celdas[indX].split(',')[0]) == -1)
+                    numsExistentes.push(parseInt(this.celdas[indX].split(',')[0]));
+            
+            indY = i+','+y;
+            // console.log(indY);
+            if(this.celdas[indY]!=undefined)
+                if(numsExistentes.indexOf(this.celdas[indY].split(',')[0]) == -1)
+                    numsExistentes.push(parseInt(this.celdas[indY].split(',')[0]));
+        }
+        var cuadrante = this.cursor.coordenada.obtenerCuadranteCoordenadaXY(x,y);
+        for(i = 0;i<3;i++)
+        {
+            for(j=0;j<3;j++)
+            {
+                key = (cuadrante.x+i)+','+(cuadrante.y+j);
+                if(this.celdas[key]!=undefined)
+                    if(numsExistentes.indexOf(this.celdas[key].split(',')[0]) == -1)
+                        numsExistentes.push(parseInt(this.celdas[key].split(',')[0]));
+            }
+        }
+
+        var salida = nums.filter(x=>(numsExistentes.indexOf(x)==-1));
+        console.log('['+x+','+y+']' + salida);
+
+        return salida;
+    }
+
+
+    this.dibujaTablero();
+    this.inicializarFilas();
+    this.actualizaPosicionCursor();
+
+}
 
 function Cursor(color)
 {
@@ -173,7 +289,7 @@ function Cursor(color)
         return {x:this.x,y:this.y};
     }
 
-    this.mover = function(keyCode) //dX,dY)
+    this.mover = function(keyCode)
     {
         this.delta = this.traducirKeyCodeDelta(keyCode);
         if(this.delta == undefined)
@@ -221,4 +337,40 @@ function Coordenada(x,y)
         delete coord.obtenerCuadranteCoordenada;
         return coord;
     }
+
+    this.obtenerCuadranteCoordenadaXY = function(x,y)
+    {
+        var cX = (Math.ceil(x/3)*3)-2;
+        var cY = (Math.ceil(y/3)*3)-2;
+
+        var coord = new Coordenada(cX,cY);
+        delete coord.obtenerCuadranteCoordenada;
+        return coord;
+    }
+
+    this.llave =  function(){return this.x+','+this.y;};
+}
+
+function GeneradorNumerico()
+{
+    this.generarCoordenadaAleatoria = function ()
+    {
+        coordAle = 0;
+        while((coordAle < 1) || (coordAle > 9))
+        {
+            coordAle = Math.floor(Math.random() * 9);
+        }
+        return coordAle;
+    };
+    this.obtenerCoordenadaAleatoria = function()
+    {
+        var x = this.generarCoordenadaAleatoria();
+        var y = this.generarCoordenadaAleatoria();
+        
+        var coords = new Coordenada(x,y);
+        delete coords.obtenerCuadranteCoordenada;
+        return coords;
+
+    }
+    
 }
