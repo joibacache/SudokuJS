@@ -18,6 +18,53 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     this.NUM_CELDAS_INICIALES = 81;
     this.MAX_INTENTOS_ALEATORIOS = 30;
     this.genNumerico = new GeneradorNumerico();
+
+    this.crearTableroTest = function()
+    {
+        this.celdas['4,1']='7,1';
+        this.celdas['5,1']='8,1';
+        this.celdas['2,2']='5,1';
+        this.celdas['3,2']='1,1';
+        this.celdas['7,2']='6,1';
+        this.celdas['1,3']='8,1';
+        this.celdas['2,3']='3,1';
+        this.celdas['3,3']='4,1';
+        this.celdas['7,3']='9,1';
+        this.celdas['2,4']='2,1';
+        this.celdas['6,4']='5,1';
+        this.celdas['8,4']='7,1';
+        this.celdas['1,5']='1,1';
+        this.celdas['3,5']='5,1';
+        this.celdas['4,5']='8,1';
+        this.celdas['6,5']='3,1';
+        this.celdas['7,5']='2,1';
+        this.celdas['1,6']='3,1';
+        this.celdas['4,6']='2,1';
+        this.celdas['7,6']='1,1';
+        this.celdas['8,6']='9,1';
+        this.celdas['4,7']='4,1';
+        this.celdas['7,7']='5,1';
+        this.celdas['8,7']='3,1';
+        this.celdas['9,7']='2,1';
+        this.celdas['2,8']='1,1';
+        this.celdas['4,8']='5,1';
+        this.celdas['5,8']='7,1';
+        this.celdas['8,8']='6,1';
+        this.celdas['1,9']='5,1';
+        this.celdas['3,9']='6,1';
+        this.celdas['6,9']='9,1';
+        this.celdas['9,9']='1,1';
+
+        for(i=1;i<10;i++)
+            for(j=1;j<10;j++)
+            {
+                if(this.celdas[i+','+j]!= undefined)
+                {
+                    var valor = this.celdas[i+','+j].split(',')[0]
+                    this.pintaValorCelda(i,j,valor,false);
+                }
+            }
+    }
     
     //Dibuja la cuadricula y el cursor en su posición inicial.
     this.dibujaTablero = function()
@@ -119,10 +166,10 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
         var cont = 0;
         if(Object.keys(this.celdas).length == this.TOTAL_CASILLAS)
             return false;
-        while(cont<this.NUM_CELDAS_INICIALES)
+        while(cont<10)//this.NUM_CELDAS_INICIALES)
         {
             var key = this.obtenerCoordCeldaVacia(this.celdas);
-            valores = this.obtenerNumerosDisponiblesCelda(key.x,key.y);
+            valores = this.obtenerNumerosDisponiblesCelda(key);
             var indice = Math.ceil(Math.random()*(valores.length-1));
             valor = valores[indice];
             if(valor == undefined)
@@ -140,21 +187,18 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
 
     this.obtenerCoordCeldaVacia = function(celdasUtilizadas)
     {
-        var coordValidas = false;
-        var llave;
-        var retorno;
-        var contA = 0;
-        var cn = Object.keys(this.celdasNulas);
-        var cu = celdasUtilizadas == undefined ? []:Object.keys(celdasUtilizadas);
-        var cd = cn.filter(x=>cu.indexOf(x)==-1);
+        var indicesCeldasNulas = Object.keys(this.celdasNulas);
+        var indicesCeldasUtilizadas = celdasUtilizadas == undefined ? []:Object.keys(celdasUtilizadas);
+        var indicesCeldasDisponibles = indicesCeldasNulas.filter(x=>indicesCeldasUtilizadas.indexOf(x)==-1);
 
-        var coordAle;
-        do
-        {
-            coordAle = Math.floor(Math.random() * (cd.length-1));
-        } while(coordAle > cd.length)
+        // var coordAle;
+        // do
+        // {
+        //     coordAle = Math.floor(Math.random() * (indicesCeldasDisponibles.length-1));
+        // } while(coordAle > indicesCeldasDisponibles.length)
         
-        var coord = cd[coordAle].split(',');
+        // var coord = indicesCeldasDisponibles[coordAle].split(',');
+        var coord = indicesCeldasDisponibles[0].split(',');
         return {x:parseInt(coord[0]),y:parseInt(coord[1])};
     }
 
@@ -210,8 +254,10 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
                             this.dimensiones.celda.ancho*3);
     }
 
-    this.obtenerNumerosDisponiblesCelda = function(x,y)
+    this.obtenerNumerosDisponiblesCelda = function(coord)
     {
+        var x = coord.x;
+        var y = coord.y;
         var nums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         var numsExistentes=[];
         for(i = 1;i<10;i++)
@@ -219,13 +265,13 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
             indX = x+','+i;
             // console.log(indX);
             if(this.celdas[indX]!=undefined)
-                if(numsExistentes.indexOf(this.celdas[indX].split(',')[0]) == -1)
+                if(numsExistentes.indexOf(parseInt(this.celdas[indX].split(',')[0])) == -1)
                     numsExistentes.push(parseInt(this.celdas[indX].split(',')[0]));
             
             indY = i+','+y;
             // console.log(indY);
             if(this.celdas[indY]!=undefined)
-                if(numsExistentes.indexOf(this.celdas[indY].split(',')[0]) == -1)
+                if(numsExistentes.indexOf(parseInt(this.celdas[indY].split(',')[0])) == -1)
                     numsExistentes.push(parseInt(this.celdas[indY].split(',')[0]));
         }
         var cuadrante = this.cursor.coordenada.obtenerCuadranteCoordenadaXY(x,y);
@@ -235,7 +281,7 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
             {
                 key = (cuadrante.x+i)+','+(cuadrante.y+j);
                 if(this.celdas[key]!=undefined)
-                    if(numsExistentes.indexOf(this.celdas[key].split(',')[0]) == -1)
+                    if(numsExistentes.indexOf(parseInt(this.celdas[key].split(',')[0])) == -1)
                         numsExistentes.push(parseInt(this.celdas[key].split(',')[0]));
             }
         }
@@ -248,8 +294,8 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
 
 
     this.dibujaTablero();
-    this.inicializarFilas();
-    this.actualizaPosicionCursor();
+    // this.inicializarFilas();
+    // this.actualizaPosicionCursor();
 
 }
 
