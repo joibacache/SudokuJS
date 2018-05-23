@@ -4,6 +4,7 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     this.colorCursor = colorCursor;
     this.colorValorCursor = "red";
     this.celdas = [];
+    this.celdasBT = [];    
     this.celdasNulas = [];
     for(i=1;i<10;i++)
         for(j=1;j<10;j++)
@@ -164,24 +165,53 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     this.inicializarFilas = function()
     {
         var cont = 0;
+        var contBT = 0;
         if(Object.keys(this.celdas).length == this.TOTAL_CASILLAS)
             return false;
-        while(cont<10)//this.NUM_CELDAS_INICIALES)
+        while(cont<this.NUM_CELDAS_INICIALES)
         {
+            console.log('cont:'+cont);
             var key = this.obtenerCoordCeldaVacia(this.celdas);
             valores = this.obtenerNumerosDisponiblesCelda(key);
             var indice = Math.ceil(Math.random()*(valores.length-1));
             valor = valores[indice];
-            if(valor == undefined)
+            if(valor != undefined)
             {
-                console.log('undefined!');
-                continue;
+                this.celdasBT.push({k:key,v:valor});
+                this.celdas[key.x+','+key.y] = valor + ',' + this.VALOR_AUTOGENERADO
+                this.pintaValorCelda(key.x,key.y,valor,false);       
+                cont++;         
             }
-            // console.log(valores+','+indice+','+valor);
-            // if (this.celdas[key.x+','+key.y] == undefined)
-            this.celdas[key.x+','+key.y] = valor + ',' + this.VALOR_AUTOGENERADO
-            this.pintaValorCelda(key.x,key.y,valor,false);       
-            cont++;         
+            else
+            {
+                do
+                {
+                    var dato = this.celdasBT.pop();
+                    delete this.celdas[dato.k.x+','+dato.k.y];
+                    var coordAux = new Coordenada(dato.k.x,dato.k.y);
+                    this.borraContenidoCelda(coordAux);
+                    valores = this.obtenerNumerosDisponiblesCelda(dato.k)
+                    valores = valores.filter(x=>x!=dato.v);
+                    key = {x:coordAux.x,y:coordAux.y};
+                    contBT++;
+                    // cont--;
+                    console.log('contBT:'+contBT);
+                }while(valores.length==0)
+                // valor = valores[0];
+                var indice = Math.ceil(Math.random()*(valores.length-1));
+                valor = valores[indice];                
+                this.celdasBT.push({k:key,v:valor});
+                this.celdas[key.x+','+key.y] = valor + ',' + this.VALOR_AUTOGENERADO
+                this.pintaValorCelda(key.x,key.y,valor,false);       
+                // cont++;         
+                // console.log('undefined!');
+                // cont++;
+                // continue;
+            }
+            
+            // this.celdas[key.x+','+key.y] = valor + ',' + this.VALOR_AUTOGENERADO
+            // this.pintaValorCelda(key.x,key.y,valor,false);       
+            // cont++;         
         }
     }
 
@@ -254,6 +284,28 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
                             this.dimensiones.celda.ancho*3);
     }
 
+    this.borraContenidoCelda = function(coord)
+    {
+        this.colorFiguraTexto(this.colorFondo);
+        this.ctxGr.fillRect((coord.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
+                            (coord.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
+                            this.dimensiones.celda.ancho,
+                            this.dimensiones.celda.ancho);
+        this.anchoLinea(1);
+        this.colorLinea(colorCursor);
+        this.ctxGr.strokeRect((coord.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
+                            (coord.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
+                            this.dimensiones.celda.ancho,
+                            this.dimensiones.celda.ancho);
+        
+        var coordsCuadrante = coord.obtenerCuadranteCoordenada();
+        this.anchoLinea(3);
+        this.ctxGr.strokeRect((coordsCuadrante.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
+                            (coordsCuadrante.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
+                            this.dimensiones.celda.ancho*3,
+                            this.dimensiones.celda.ancho*3);
+    }
+
     this.obtenerNumerosDisponiblesCelda = function(coord)
     {
         var x = coord.x;
@@ -287,7 +339,7 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
         }
 
         var salida = nums.filter(x=>(numsExistentes.indexOf(x)==-1));
-        console.log('['+x+','+y+']' + salida);
+        // console.log('['+x+','+y+']' + salida);
 
         return salida;
     }
@@ -417,6 +469,5 @@ function GeneradorNumerico()
         delete coords.obtenerCuadranteCoordenada;
         return coords;
 
-    }
-    
+    };
 }
