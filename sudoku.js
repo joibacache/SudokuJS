@@ -172,7 +172,10 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
         {
             console.log('cont:'+cont);
             var key = this.obtenerCoordCeldaVacia(this.celdas);
-            valores = this.obtenerNumerosDisponiblesCelda(key);
+            if(key.x == 1)
+                valores = this.obtenerNumerosDisponiblesCelda(key);
+            else
+                valores = this.obtenerValoresAlternativo(key.x,key.y);
             var indice = Math.ceil(Math.random()*(valores.length-1));
             valor = valores[indice];
             if(valor != undefined)
@@ -190,7 +193,11 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
                     delete this.celdas[dato.k.x+','+dato.k.y];
                     var coordAux = new Coordenada(dato.k.x,dato.k.y);
                     this.borraContenidoCelda(coordAux);
-                    valores = this.obtenerNumerosDisponiblesCelda(dato.k)
+                    // valores = this.obtenerNumerosDisponiblesCelda(dato.k)
+                    if(key.x == 1)
+                    valores = this.obtenerNumerosDisponiblesCelda(dato.k);
+                    else
+                    valores = this.obtenerValoresAlternativo(dato.k.x,dato.k.y);
                     valores = valores.filter(x=>x!=dato.v);
                     key = {x:coordAux.x,y:coordAux.y};
                     contBT++;
@@ -348,6 +355,47 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     this.dibujaTablero();
     // this.inicializarFilas();
     // this.actualizaPosicionCursor();
+
+    this.obtenerValoresAlternativo = function(x,y)
+    {
+        var numsDisp = [];
+        var numsColumna = [];
+        var numsCuadrante = []
+        if(x < 2)
+            return undefined;
+        var cuadr = this.cursor.coordenada.obtenerCuadranteCoordenadaXY(x,y);
+        
+        for(j=1;j<x;j++)
+            for(i=1;i<10;i++)
+            {
+                if((i < cuadr.y) || (i > (cuadr.y + 2)))
+                {
+                    if(numsDisp.indexOf(this.celdas[(j+','+i)].split(',')[0])== -1)
+                        numsDisp.push(this.celdas[(j+','+i)].split(',')[0]);
+                }
+
+            }
+
+    
+        for(j= 1;j<y;j++)
+        {
+            if(this.celdas[x+','+j]!=undefined)
+                numsColumna.push(this.celdas[x+','+j].split(',')[0])
+        }
+
+        for(i=cuadr.x;i<=(cuadr.x+2);i++)
+        {
+            for(j=cuadr.y;j<=(cuadr.y+2);j++)
+            {
+                if(this.celdas[x+','+j]!=undefined)
+                numsCuadrante.push(this.celdas[x+','+j].split(',')[0])
+            }
+        }
+
+        numsDisp = numsDisp.filter(x=>numsColumna.indexOf(x) == -1);
+        numsDisp = numsDisp.filter(x=>numsCuadrante.indexOf(x) == -1);
+        return numsDisp;
+    } 
 
 }
 
