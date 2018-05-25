@@ -297,6 +297,19 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     }
 
 
+    this.limpiarCeldas = function()
+    {
+        var cont = 0;
+        while(cont<25)
+        {
+            var coord = this.genNumerico.obtenerCoordenadaAleatoria();
+            this.borraContenidoCelda(coord);
+            cont++;
+        }
+    }
+
+
+
     var startTime = new Date();
 
     this.dibujaTablero();
@@ -309,118 +322,8 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
 
     console.log('time: '+timeDiff);
 
-    this.crearTableroTest = function()
-    {
-        this.celdas['4,1']='7,1';
-        this.celdas['5,1']='8,1';
-        this.celdas['2,2']='5,1';
-        this.celdas['3,2']='1,1';
-        this.celdas['7,2']='6,1';
-        this.celdas['1,3']='8,1';
-        this.celdas['2,3']='3,1';
-        this.celdas['3,3']='4,1';
-        this.celdas['7,3']='9,1';
-        this.celdas['2,4']='2,1';
-        this.celdas['6,4']='5,1';
-        this.celdas['8,4']='7,1';
-        this.celdas['1,5']='1,1';
-        this.celdas['3,5']='5,1';
-        this.celdas['4,5']='8,1';
-        this.celdas['6,5']='3,1';
-        this.celdas['7,5']='2,1';
-        this.celdas['1,6']='3,1';
-        this.celdas['4,6']='2,1';
-        this.celdas['7,6']='1,1';
-        this.celdas['8,6']='9,1';
-        this.celdas['4,7']='4,1';
-        this.celdas['7,7']='5,1';
-        this.celdas['8,7']='3,1';
-        this.celdas['9,7']='2,1';
-        this.celdas['2,8']='1,1';
-        this.celdas['4,8']='5,1';
-        this.celdas['5,8']='7,1';
-        this.celdas['8,8']='6,1';
-        this.celdas['1,9']='5,1';
-        this.celdas['3,9']='6,1';
-        this.celdas['6,9']='9,1';
-        this.celdas['9,9']='1,1';
 
-        for(i=1;i<10;i++)
-            for(j=1;j<10;j++)
-            {
-                if(this.celdas[i+','+j]!= undefined)
-                {
-                    var valor = this.celdas[i+','+j].split(',')[0]
-                    this.pintaValorCelda(i,j,valor,false);
-                }
-            }
-    }
-
-    this.crearTableroTest2 = function()
-    {
-        this.celdas['1,1']='2,1';
-        this.celdas['1,2']='7,1';
-        this.celdas['1,3']='9,1';
-        this.celdas['1,4']='3,1';
-        this.celdas['1,5']='1,1';
-        this.celdas['1,6']='5,1';
-        this.celdas['1,7']='8,1';
-        this.celdas['1,8']='6,1';
-        this.celdas['1,9']='4,1';
-        
-
-        for(i=1;i<10;i++)
-            for(j=1;j<10;j++)
-            {
-                if(this.celdas[i+','+j]!= undefined)
-                {
-                    var valor = this.celdas[i+','+j].split(',')[0]
-                    this.pintaValorCelda(i,j,valor,false);
-                }
-            }
-    }
     
-    this.obtenerValoresAlternativo = function(x,y)
-    {
-        var numsDisp = [];
-        var numsColumna = [];
-        var numsCuadrante = []
-        if(x < 2)
-        return undefined;
-        var cuadr = this.cursor.coordenada.obtenerCuadranteCoordenadaXY(x,y);
-        
-        for(j=1;j<x;j++)
-        {   
-            for(i=1;i<10;i++)
-            {
-                if((i < cuadr.y) || (i > (cuadr.y + 2)))
-                {
-                    if(numsDisp.indexOf(this.celdas[(j+','+i)].split(',')[0])== -1)
-                    numsDisp.push(this.celdas[(j+','+i)].split(',')[0]);
-                }
-                
-            }   
-        }
-        
-        for(j= 1;j<y;j++)
-        {
-            if(this.celdas[x+','+j]!=undefined)
-            numsColumna.push(this.celdas[x+','+j].split(',')[0])
-        }
-        
-        for(i=cuadr.x;i<=(cuadr.x+2);i++)
-        {
-            for(j=cuadr.y;j<=(cuadr.y+2);j++)
-            {
-                if(this.celdas[i+','+j]!=undefined)
-                numsCuadrante.push(this.celdas[i+','+j].split(',')[0])
-            }
-        }
-        
-        numsDisp = numsDisp.filter(x=>numsColumna.indexOf(x) == -1);
-        numsDisp = numsDisp.filter(x=>numsCuadrante.indexOf(x) == -1);
-        return numsDisp;
-    } 
 }
 
 function Cursor(color)
@@ -538,7 +441,7 @@ function GeneradorNumerico()
         var y = this.generarCoordenadaAleatoria();
         
         var coords = new Coordenada(x,y);
-        delete coords.obtenerCuadranteCoordenada;
+        // delete coords.obtenerCuadranteCoordenada;
         return coords;
 
     };
