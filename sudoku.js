@@ -20,52 +20,6 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     this.MAX_INTENTOS_ALEATORIOS = 30;
     this.genNumerico = new GeneradorNumerico();
 
-    this.crearTableroTest = function()
-    {
-        this.celdas['4,1']='7,1';
-        this.celdas['5,1']='8,1';
-        this.celdas['2,2']='5,1';
-        this.celdas['3,2']='1,1';
-        this.celdas['7,2']='6,1';
-        this.celdas['1,3']='8,1';
-        this.celdas['2,3']='3,1';
-        this.celdas['3,3']='4,1';
-        this.celdas['7,3']='9,1';
-        this.celdas['2,4']='2,1';
-        this.celdas['6,4']='5,1';
-        this.celdas['8,4']='7,1';
-        this.celdas['1,5']='1,1';
-        this.celdas['3,5']='5,1';
-        this.celdas['4,5']='8,1';
-        this.celdas['6,5']='3,1';
-        this.celdas['7,5']='2,1';
-        this.celdas['1,6']='3,1';
-        this.celdas['4,6']='2,1';
-        this.celdas['7,6']='1,1';
-        this.celdas['8,6']='9,1';
-        this.celdas['4,7']='4,1';
-        this.celdas['7,7']='5,1';
-        this.celdas['8,7']='3,1';
-        this.celdas['9,7']='2,1';
-        this.celdas['2,8']='1,1';
-        this.celdas['4,8']='5,1';
-        this.celdas['5,8']='7,1';
-        this.celdas['8,8']='6,1';
-        this.celdas['1,9']='5,1';
-        this.celdas['3,9']='6,1';
-        this.celdas['6,9']='9,1';
-        this.celdas['9,9']='1,1';
-
-        for(i=1;i<10;i++)
-            for(j=1;j<10;j++)
-            {
-                if(this.celdas[i+','+j]!= undefined)
-                {
-                    var valor = this.celdas[i+','+j].split(',')[0]
-                    this.pintaValorCelda(i,j,valor,false);
-                }
-            }
-    }
     
     //Dibuja la cuadricula y el cursor en su posición inicial.
     this.dibujaTablero = function()
@@ -168,57 +122,48 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
         var contBT = 0;
         if(Object.keys(this.celdas).length == this.TOTAL_CASILLAS)
             return false;
+
         while(cont<this.NUM_CELDAS_INICIALES)
         {
-            console.log('cont:'+cont);
+            // console.log('cont:'+cont);
             var key = this.obtenerCoordCeldaVacia(this.celdas);
-            if(key.x == 1)
-                valores = this.obtenerNumerosDisponiblesCelda(key);
-            else
-                valores = this.obtenerValoresAlternativo(key.x,key.y);
-            var indice = Math.ceil(Math.random()*(valores.length-1));
+            valores = this.obtenerNumerosDisponiblesCelda(key);
+            var indice = Math.floor(Math.random()*(valores.length));
             valor = valores[indice];
             if(valor != undefined)
             {
                 this.celdasBT.push({k:key,v:valor});
                 this.celdas[key.x+','+key.y] = valor + ',' + this.VALOR_AUTOGENERADO
                 this.pintaValorCelda(key.x,key.y,valor,false);       
-                cont++;         
+                cont++;
             }
             else
             {
-                do
+                contBT++;
+                if(contBT == 20)
                 {
-                    var dato = this.celdasBT.pop();
-                    delete this.celdas[dato.k.x+','+dato.k.y];
-                    var coordAux = new Coordenada(dato.k.x,dato.k.y);
+                    this.celdas = [];
+                    for(i = 1;i<10;i++)
+                    {
+                        for(j=1;j<10;j++)
+                        {
+                            coordAux = new Coordenada(i,j);
+                            this.borraContenidoCelda(coordAux);
+                        }
+                    }
+                    cont = 0;
+                    contBT = 0;
+                    console.log("Reinicia tablero");
+                    continue;
+                }
+                for(i=1;i<key.y;i++)
+                {
+                    delete this.celdas[key.x+','+i];
+                    coordAux = new Coordenada(key.x,i);
                     this.borraContenidoCelda(coordAux);
-                    // valores = this.obtenerNumerosDisponiblesCelda(dato.k)
-                    if(key.x == 1)
-                    valores = this.obtenerNumerosDisponiblesCelda(dato.k);
-                    else
-                    valores = this.obtenerValoresAlternativo(dato.k.x,dato.k.y);
-                    valores = valores.filter(x=>x!=dato.v);
-                    key = {x:coordAux.x,y:coordAux.y};
-                    contBT++;
-                    // cont--;
-                    console.log('contBT:'+contBT);
-                }while(valores.length==0)
-                // valor = valores[0];
-                var indice = Math.ceil(Math.random()*(valores.length-1));
-                valor = valores[indice];                
-                this.celdasBT.push({k:key,v:valor});
-                this.celdas[key.x+','+key.y] = valor + ',' + this.VALOR_AUTOGENERADO
-                this.pintaValorCelda(key.x,key.y,valor,false);       
-                // cont++;         
-                // console.log('undefined!');
-                // cont++;
-                // continue;
+                    cont--;
+                }
             }
-            
-            // this.celdas[key.x+','+key.y] = valor + ',' + this.VALOR_AUTOGENERADO
-            // this.pintaValorCelda(key.x,key.y,valor,false);       
-            // cont++;         
         }
     }
 
@@ -352,51 +297,130 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     }
 
 
-    this.dibujaTablero();
-    // this.inicializarFilas();
-    // this.actualizaPosicionCursor();
+    var startTime = new Date();
 
+    this.dibujaTablero();
+    this.inicializarFilas();
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+
+    timeDiff /= 1000;
+
+    console.log('time: '+timeDiff);
+
+    this.crearTableroTest = function()
+    {
+        this.celdas['4,1']='7,1';
+        this.celdas['5,1']='8,1';
+        this.celdas['2,2']='5,1';
+        this.celdas['3,2']='1,1';
+        this.celdas['7,2']='6,1';
+        this.celdas['1,3']='8,1';
+        this.celdas['2,3']='3,1';
+        this.celdas['3,3']='4,1';
+        this.celdas['7,3']='9,1';
+        this.celdas['2,4']='2,1';
+        this.celdas['6,4']='5,1';
+        this.celdas['8,4']='7,1';
+        this.celdas['1,5']='1,1';
+        this.celdas['3,5']='5,1';
+        this.celdas['4,5']='8,1';
+        this.celdas['6,5']='3,1';
+        this.celdas['7,5']='2,1';
+        this.celdas['1,6']='3,1';
+        this.celdas['4,6']='2,1';
+        this.celdas['7,6']='1,1';
+        this.celdas['8,6']='9,1';
+        this.celdas['4,7']='4,1';
+        this.celdas['7,7']='5,1';
+        this.celdas['8,7']='3,1';
+        this.celdas['9,7']='2,1';
+        this.celdas['2,8']='1,1';
+        this.celdas['4,8']='5,1';
+        this.celdas['5,8']='7,1';
+        this.celdas['8,8']='6,1';
+        this.celdas['1,9']='5,1';
+        this.celdas['3,9']='6,1';
+        this.celdas['6,9']='9,1';
+        this.celdas['9,9']='1,1';
+
+        for(i=1;i<10;i++)
+            for(j=1;j<10;j++)
+            {
+                if(this.celdas[i+','+j]!= undefined)
+                {
+                    var valor = this.celdas[i+','+j].split(',')[0]
+                    this.pintaValorCelda(i,j,valor,false);
+                }
+            }
+    }
+
+    this.crearTableroTest2 = function()
+    {
+        this.celdas['1,1']='2,1';
+        this.celdas['1,2']='7,1';
+        this.celdas['1,3']='9,1';
+        this.celdas['1,4']='3,1';
+        this.celdas['1,5']='1,1';
+        this.celdas['1,6']='5,1';
+        this.celdas['1,7']='8,1';
+        this.celdas['1,8']='6,1';
+        this.celdas['1,9']='4,1';
+        
+
+        for(i=1;i<10;i++)
+            for(j=1;j<10;j++)
+            {
+                if(this.celdas[i+','+j]!= undefined)
+                {
+                    var valor = this.celdas[i+','+j].split(',')[0]
+                    this.pintaValorCelda(i,j,valor,false);
+                }
+            }
+    }
+    
     this.obtenerValoresAlternativo = function(x,y)
     {
         var numsDisp = [];
         var numsColumna = [];
         var numsCuadrante = []
         if(x < 2)
-            return undefined;
+        return undefined;
         var cuadr = this.cursor.coordenada.obtenerCuadranteCoordenadaXY(x,y);
         
         for(j=1;j<x;j++)
+        {   
             for(i=1;i<10;i++)
             {
                 if((i < cuadr.y) || (i > (cuadr.y + 2)))
                 {
                     if(numsDisp.indexOf(this.celdas[(j+','+i)].split(',')[0])== -1)
-                        numsDisp.push(this.celdas[(j+','+i)].split(',')[0]);
+                    numsDisp.push(this.celdas[(j+','+i)].split(',')[0]);
                 }
-
-            }
-
-    
+                
+            }   
+        }
+        
         for(j= 1;j<y;j++)
         {
             if(this.celdas[x+','+j]!=undefined)
-                numsColumna.push(this.celdas[x+','+j].split(',')[0])
+            numsColumna.push(this.celdas[x+','+j].split(',')[0])
         }
-
+        
         for(i=cuadr.x;i<=(cuadr.x+2);i++)
         {
             for(j=cuadr.y;j<=(cuadr.y+2);j++)
             {
-                if(this.celdas[x+','+j]!=undefined)
-                numsCuadrante.push(this.celdas[x+','+j].split(',')[0])
+                if(this.celdas[i+','+j]!=undefined)
+                numsCuadrante.push(this.celdas[i+','+j].split(',')[0])
             }
         }
-
+        
         numsDisp = numsDisp.filter(x=>numsColumna.indexOf(x) == -1);
         numsDisp = numsDisp.filter(x=>numsCuadrante.indexOf(x) == -1);
         return numsDisp;
     } 
-
 }
 
 function Cursor(color)
