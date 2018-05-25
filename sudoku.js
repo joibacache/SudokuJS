@@ -4,6 +4,7 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     this.colorCursor = colorCursor;
     this.colorValorCursor = "red";
     this.celdas = [];
+    this.celdasBT = [];    
     this.celdasNulas = [];
     for(i=1;i<10;i++)
         for(j=1;j<10;j++)
@@ -19,52 +20,6 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     this.MAX_INTENTOS_ALEATORIOS = 30;
     this.genNumerico = new GeneradorNumerico();
 
-    this.crearTableroTest = function()
-    {
-        this.celdas['4,1']='7,1';
-        this.celdas['5,1']='8,1';
-        this.celdas['2,2']='5,1';
-        this.celdas['3,2']='1,1';
-        this.celdas['7,2']='6,1';
-        this.celdas['1,3']='8,1';
-        this.celdas['2,3']='3,1';
-        this.celdas['3,3']='4,1';
-        this.celdas['7,3']='9,1';
-        this.celdas['2,4']='2,1';
-        this.celdas['6,4']='5,1';
-        this.celdas['8,4']='7,1';
-        this.celdas['1,5']='1,1';
-        this.celdas['3,5']='5,1';
-        this.celdas['4,5']='8,1';
-        this.celdas['6,5']='3,1';
-        this.celdas['7,5']='2,1';
-        this.celdas['1,6']='3,1';
-        this.celdas['4,6']='2,1';
-        this.celdas['7,6']='1,1';
-        this.celdas['8,6']='9,1';
-        this.celdas['4,7']='4,1';
-        this.celdas['7,7']='5,1';
-        this.celdas['8,7']='3,1';
-        this.celdas['9,7']='2,1';
-        this.celdas['2,8']='1,1';
-        this.celdas['4,8']='5,1';
-        this.celdas['5,8']='7,1';
-        this.celdas['8,8']='6,1';
-        this.celdas['1,9']='5,1';
-        this.celdas['3,9']='6,1';
-        this.celdas['6,9']='9,1';
-        this.celdas['9,9']='1,1';
-
-        for(i=1;i<10;i++)
-            for(j=1;j<10;j++)
-            {
-                if(this.celdas[i+','+j]!= undefined)
-                {
-                    var valor = this.celdas[i+','+j].split(',')[0]
-                    this.pintaValorCelda(i,j,valor,false);
-                }
-            }
-    }
     
     //Dibuja la cuadricula y el cursor en su posición inicial.
     this.dibujaTablero = function()
@@ -164,24 +119,51 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     this.inicializarFilas = function()
     {
         var cont = 0;
+        var contBT = 0;
         if(Object.keys(this.celdas).length == this.TOTAL_CASILLAS)
             return false;
-        while(cont<10)//this.NUM_CELDAS_INICIALES)
+
+        while(cont<this.NUM_CELDAS_INICIALES)
         {
+            // console.log('cont:'+cont);
             var key = this.obtenerCoordCeldaVacia(this.celdas);
             valores = this.obtenerNumerosDisponiblesCelda(key);
-            var indice = Math.ceil(Math.random()*(valores.length-1));
+            var indice = Math.floor(Math.random()*(valores.length));
             valor = valores[indice];
-            if(valor == undefined)
+            if(valor != undefined)
             {
-                console.log('undefined!');
-                continue;
+                this.celdasBT.push({k:key,v:valor});
+                this.celdas[key.x+','+key.y] = valor + ',' + this.VALOR_AUTOGENERADO
+                this.pintaValorCelda(key.x,key.y,valor,false);       
+                cont++;
             }
-            // console.log(valores+','+indice+','+valor);
-            // if (this.celdas[key.x+','+key.y] == undefined)
-            this.celdas[key.x+','+key.y] = valor + ',' + this.VALOR_AUTOGENERADO
-            this.pintaValorCelda(key.x,key.y,valor,false);       
-            cont++;         
+            else
+            {
+                contBT++;
+                if(contBT == 20)
+                {
+                    this.celdas = [];
+                    for(i = 1;i<10;i++)
+                    {
+                        for(j=1;j<10;j++)
+                        {
+                            coordAux = new Coordenada(i,j);
+                            this.borraContenidoCelda(coordAux);
+                        }
+                    }
+                    cont = 0;
+                    contBT = 0;
+                    console.log("Reinicia tablero");
+                    continue;
+                }
+                for(i=1;i<key.y;i++)
+                {
+                    delete this.celdas[key.x+','+i];
+                    coordAux = new Coordenada(key.x,i);
+                    this.borraContenidoCelda(coordAux);
+                    cont--;
+                }
+            }
         }
     }
 
@@ -254,6 +236,28 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
                             this.dimensiones.celda.ancho*3);
     }
 
+    this.borraContenidoCelda = function(coord)
+    {
+        this.colorFiguraTexto(this.colorFondo);
+        this.ctxGr.fillRect((coord.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
+                            (coord.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
+                            this.dimensiones.celda.ancho,
+                            this.dimensiones.celda.ancho);
+        this.anchoLinea(1);
+        this.colorLinea(colorCursor);
+        this.ctxGr.strokeRect((coord.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
+                            (coord.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
+                            this.dimensiones.celda.ancho,
+                            this.dimensiones.celda.ancho);
+        
+        var coordsCuadrante = coord.obtenerCuadranteCoordenada();
+        this.anchoLinea(3);
+        this.ctxGr.strokeRect((coordsCuadrante.x*this.dimensiones.celda.ancho)-this.dimensiones.margen.ancho,
+                            (coordsCuadrante.y*this.dimensiones.celda.alto)-this.dimensiones.margen.alto,
+                            this.dimensiones.celda.ancho*3,
+                            this.dimensiones.celda.ancho*3);
+    }
+
     this.obtenerNumerosDisponiblesCelda = function(coord)
     {
         var x = coord.x;
@@ -287,16 +291,136 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
         }
 
         var salida = nums.filter(x=>(numsExistentes.indexOf(x)==-1));
-        console.log('['+x+','+y+']' + salida);
+        // console.log('['+x+','+y+']' + salida);
 
         return salida;
     }
 
 
-    this.dibujaTablero();
-    // this.inicializarFilas();
-    // this.actualizaPosicionCursor();
+    var startTime = new Date();
 
+    this.dibujaTablero();
+    this.inicializarFilas();
+
+    var endTime = new Date();
+    var timeDiff = endTime - startTime;
+
+    timeDiff /= 1000;
+
+    console.log('time: '+timeDiff);
+
+    this.crearTableroTest = function()
+    {
+        this.celdas['4,1']='7,1';
+        this.celdas['5,1']='8,1';
+        this.celdas['2,2']='5,1';
+        this.celdas['3,2']='1,1';
+        this.celdas['7,2']='6,1';
+        this.celdas['1,3']='8,1';
+        this.celdas['2,3']='3,1';
+        this.celdas['3,3']='4,1';
+        this.celdas['7,3']='9,1';
+        this.celdas['2,4']='2,1';
+        this.celdas['6,4']='5,1';
+        this.celdas['8,4']='7,1';
+        this.celdas['1,5']='1,1';
+        this.celdas['3,5']='5,1';
+        this.celdas['4,5']='8,1';
+        this.celdas['6,5']='3,1';
+        this.celdas['7,5']='2,1';
+        this.celdas['1,6']='3,1';
+        this.celdas['4,6']='2,1';
+        this.celdas['7,6']='1,1';
+        this.celdas['8,6']='9,1';
+        this.celdas['4,7']='4,1';
+        this.celdas['7,7']='5,1';
+        this.celdas['8,7']='3,1';
+        this.celdas['9,7']='2,1';
+        this.celdas['2,8']='1,1';
+        this.celdas['4,8']='5,1';
+        this.celdas['5,8']='7,1';
+        this.celdas['8,8']='6,1';
+        this.celdas['1,9']='5,1';
+        this.celdas['3,9']='6,1';
+        this.celdas['6,9']='9,1';
+        this.celdas['9,9']='1,1';
+
+        for(i=1;i<10;i++)
+            for(j=1;j<10;j++)
+            {
+                if(this.celdas[i+','+j]!= undefined)
+                {
+                    var valor = this.celdas[i+','+j].split(',')[0]
+                    this.pintaValorCelda(i,j,valor,false);
+                }
+            }
+    }
+
+    this.crearTableroTest2 = function()
+    {
+        this.celdas['1,1']='2,1';
+        this.celdas['1,2']='7,1';
+        this.celdas['1,3']='9,1';
+        this.celdas['1,4']='3,1';
+        this.celdas['1,5']='1,1';
+        this.celdas['1,6']='5,1';
+        this.celdas['1,7']='8,1';
+        this.celdas['1,8']='6,1';
+        this.celdas['1,9']='4,1';
+        
+
+        for(i=1;i<10;i++)
+            for(j=1;j<10;j++)
+            {
+                if(this.celdas[i+','+j]!= undefined)
+                {
+                    var valor = this.celdas[i+','+j].split(',')[0]
+                    this.pintaValorCelda(i,j,valor,false);
+                }
+            }
+    }
+    
+    this.obtenerValoresAlternativo = function(x,y)
+    {
+        var numsDisp = [];
+        var numsColumna = [];
+        var numsCuadrante = []
+        if(x < 2)
+        return undefined;
+        var cuadr = this.cursor.coordenada.obtenerCuadranteCoordenadaXY(x,y);
+        
+        for(j=1;j<x;j++)
+        {   
+            for(i=1;i<10;i++)
+            {
+                if((i < cuadr.y) || (i > (cuadr.y + 2)))
+                {
+                    if(numsDisp.indexOf(this.celdas[(j+','+i)].split(',')[0])== -1)
+                    numsDisp.push(this.celdas[(j+','+i)].split(',')[0]);
+                }
+                
+            }   
+        }
+        
+        for(j= 1;j<y;j++)
+        {
+            if(this.celdas[x+','+j]!=undefined)
+            numsColumna.push(this.celdas[x+','+j].split(',')[0])
+        }
+        
+        for(i=cuadr.x;i<=(cuadr.x+2);i++)
+        {
+            for(j=cuadr.y;j<=(cuadr.y+2);j++)
+            {
+                if(this.celdas[i+','+j]!=undefined)
+                numsCuadrante.push(this.celdas[i+','+j].split(',')[0])
+            }
+        }
+        
+        numsDisp = numsDisp.filter(x=>numsColumna.indexOf(x) == -1);
+        numsDisp = numsDisp.filter(x=>numsCuadrante.indexOf(x) == -1);
+        return numsDisp;
+    } 
 }
 
 function Cursor(color)
@@ -417,6 +541,5 @@ function GeneradorNumerico()
         delete coords.obtenerCuadranteCoordenada;
         return coords;
 
-    }
-    
+    };
 }
