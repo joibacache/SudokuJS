@@ -1,8 +1,11 @@
 function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
 {
     this.colorFondo = colorFondo;
+    this.colorLineas = colorCursor;
     this.colorCursor = colorCursor;
     this.colorValorCursor = "red";
+    this.colorValorManual = "red";
+    this.colorValorAutomatico = "black";
     this.celdas = [];
     this.celdasBT = [];    
     this.celdasNulas = [];
@@ -66,6 +69,14 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     {
         if(this.cursor.mover(keyCode))
             this.actualizaPosicionCursor(true);
+        var numero = this.cursor.agregarNumero(keyCode,this.celdas);
+        if(numero!=false)
+        {
+            this.celdas[this.cursor.coordenada.llave()] = numero+',0';
+            this.borraContenidoCelda(this.cursor.coordenada);
+            // this.pintaValorCelda(this.cursor.coordenada.x,this.cursor.coordenada.y,false,true);
+            this.pintaValorCelda(this.cursor.coordenada);
+        }
     };
 
     this.colorLinea = function(color)
@@ -105,14 +116,19 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
         if(this.celdas[this.cursor.coordenada.llave()]!=undefined)
         {    
             // console.log(this.celdas[this.cursor.coordenada.llave()].split(',')[0])
-            this.pintaValorCelda(this.cursor.coordenada.x,this.cursor.coordenada.y,this.celdas[this.cursor.coordenada.llave()].split(',')[0],true);
+            // var valor = this.celdas[this.cursor.coordenada.llave()];
+            // if(valor.split(','[1] == 1))
+            //     this.pintaValorCelda(this.cursor.coordenada);//.x,this.cursor.coordenada.y,valor.split(',')[0],true,false);
+            // else
+            //     this.pintaValorCelda(this.cursor.coordenada);//.x,this.cursor.coordenada.y,valor.split(',')[0],true,true);
+                this.pintaValorCelda(this.cursor.coordenada);  
         }
         if(limpiaPosicionAnterior)
         {
             this.borraCursorPosicionAnterior();
-            if(this.celdas[this.cursor.coordenadaAnt.llave()]!=undefined)
-                this.pintaValorCelda(this.cursor.coordenadaAnt.x,this.cursor.coordenadaAnt.y,this.celdas[this.cursor.coordenadaAnt.llave()].split(',')[0],false);       
-            
+            // if(this.celdas[this.cursor.coordenadaAnt.llave()]!=undefined)
+            //     this.pintaValorCelda(this.cursor.coordenadaAnt);//.x,this.cursor.coordenadaAnt.y,this.celdas[this.cursor.coordenadaAnt.llave()].split(',')[0],false);       
+            this.pintaValorCelda(this.cursor.coordenadaAnt);
         }
     }
 
@@ -134,7 +150,8 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
             {
                 this.celdasBT.push({k:key,v:valor});
                 this.celdas[key.x+','+key.y] = valor + ',' + this.VALOR_AUTOGENERADO
-                this.pintaValorCelda(key.x,key.y,valor,false);       
+                // this.pintaValorCelda(key.x,key.y,valor,false);       
+                this.pintaValorCelda(key);
                 cont++;
             }
             else
@@ -181,7 +198,8 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
         
         // var coord = indicesCeldasDisponibles[coordAle].split(',');
         var coord = indicesCeldasDisponibles[0].split(',');
-        return {x:parseInt(coord[0]),y:parseInt(coord[1])};
+        // return {x:parseInt(coord[0]),y:parseInt(coord[1])};
+        return new Coordenada(parseInt(coord[0]),parseInt(coord[1]));
     }
 
     this.despliegaNumeros = function()
@@ -202,17 +220,40 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
                             this.dimensiones.celda.ancho);
     }
     
-    this.pintaValorCelda = function(x,y,valor,esCursor)
+    // this.pintaValorCelda = function(x,y,valor,esCursor,esManual)
+    // {
+    //     this.ctxGr.font = "12px Arial";
+    //     if(esCursor)
+    //         this.ctxGr.fillStyle = this.colorValorCursor;
+    //     else
+    //         if(esManual)
+    //             this.ctxGr.fillStyle = this.colorValorManual;
+    //         else
+    //             this.ctxGr.fillStyle = this.colorValorAutomatico;
+    //     this.ctxGr.fillText(valor,
+    //                         (x*this.dimensiones.celda.ancho)-3,
+    //                         (y*this.dimensiones.celda.alto)+5);
+    // }
+
+    this.pintaValorCelda = function(coordenada)//x,y,valor,esCursor,esManual)
     {
+        this.borraContenidoCelda(coordenada);
         this.ctxGr.font = "12px Arial";
-        if(esCursor)
+        var valor = this.celdas[coordenada.llave()];
+        if(valor == undefined)
+            return;
+        if(this.cursor.coordenada == coordenada)
             this.ctxGr.fillStyle = this.colorValorCursor;
         else
-            this.ctxGr.fillStyle = this.colorCursor;
-        this.ctxGr.fillText(valor,
-                            (x*this.dimensiones.celda.ancho)-3,
-                            (y*this.dimensiones.celda.alto)+5);
+            if(valor.split(',')[1] == 1)
+                this.ctxGr.fillStyle = this.colorValorManual;
+            else
+                this.ctxGr.fillStyle = this.colorValorAutomatico;
+        this.ctxGr.fillText(valor.split(',')[0],
+                            (coordenada.x*this.dimensiones.celda.ancho)-3,
+                            (coordenada.y*this.dimensiones.celda.alto)+5);
     }
+
 
     this.borraCursorPosicionAnterior = function()
     {
@@ -337,6 +378,18 @@ function Cursor(color)
         ABA : 40,
     }
 
+    this.numeros = 
+    {
+        NUM_1 : 49,
+        NUM_2 : 50,
+        NUM_3 : 51,
+        NUM_4 : 52,
+        NUM_5 : 53,
+        NUM_6 : 54,
+        NUM_7 : 55,
+        NUM_8 : 56,
+        NUM_9 : 57
+    }
      this.coordenada = new Coordenada(1,1);
 
     this.coordenadaAnt;
@@ -361,6 +414,43 @@ function Cursor(color)
         }
         return {x:this.x,y:this.y};
     }
+
+    this.traducirKeyCodeNumero = function(keyCode)
+    {
+        var numero;
+        switch(keyCode)
+        {
+            case this.numeros.NUM_1:
+                numero = 1;
+                break;
+            case this.numeros.NUM_2:
+                numero = 2;
+                break;
+            case this.numeros.NUM_3:
+                numero = 3;
+                break;
+            case this.numeros.NUM_4:
+                numero = 4;
+                break;
+            case this.numeros.NUM_5:
+                numero = 5;
+                break;
+            case this.numeros.NUM_6:
+                numero = 6;
+                break;
+            case this.numeros.NUM_7:
+                numero = 7;
+                break;
+            case this.numeros.NUM_8:
+                numero = 8;
+                break;
+            case this.numeros.NUM_9:
+                numero = 9;
+                break;
+        }
+        return numero;
+    }
+
 
     this.mover = function(keyCode)
     {
@@ -394,6 +484,16 @@ function Cursor(color)
         }
         return true;
     };
+
+
+this.agregarNumero = function(keyCode,celdas)
+{
+    var numero = this.traducirKeyCodeNumero(keyCode)
+    if(numero == undefined)
+        return false;
+    return numero; 
+    
+}
 }
 
 function Coordenada(x,y)
