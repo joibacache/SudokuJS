@@ -3,7 +3,7 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
     this.colorFondo = colorFondo;
     this.colorLineas = colorCursor;
     this.colorCursor = colorCursor;
-    this.colorValorCursor = "red";
+    this.colorValorCursor = "purple";
     this.colorValorManual = "red";
     this.colorValorAutomatico = "black";
     this.celdas = [];
@@ -115,19 +115,11 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
         this.pintaCursor();
         if(this.celdas[this.cursor.coordenada.llave()]!=undefined)
         {    
-            // console.log(this.celdas[this.cursor.coordenada.llave()].split(',')[0])
-            // var valor = this.celdas[this.cursor.coordenada.llave()];
-            // if(valor.split(','[1] == 1))
-            //     this.pintaValorCelda(this.cursor.coordenada);//.x,this.cursor.coordenada.y,valor.split(',')[0],true,false);
-            // else
-            //     this.pintaValorCelda(this.cursor.coordenada);//.x,this.cursor.coordenada.y,valor.split(',')[0],true,true);
-                this.pintaValorCelda(this.cursor.coordenada);  
+            this.pintaValorCelda(this.cursor.coordenada);  
         }
         if(limpiaPosicionAnterior)
         {
             this.borraCursorPosicionAnterior();
-            // if(this.celdas[this.cursor.coordenadaAnt.llave()]!=undefined)
-            //     this.pintaValorCelda(this.cursor.coordenadaAnt);//.x,this.cursor.coordenadaAnt.y,this.celdas[this.cursor.coordenadaAnt.llave()].split(',')[0],false);       
             this.pintaValorCelda(this.cursor.coordenadaAnt);
         }
     }
@@ -219,33 +211,17 @@ function TableroSudoku(canvasContenedor,colorFondo,colorCursor)
                             this.dimensiones.celda.ancho,
                             this.dimensiones.celda.ancho);
     }
-    
-    // this.pintaValorCelda = function(x,y,valor,esCursor,esManual)
-    // {
-    //     this.ctxGr.font = "12px Arial";
-    //     if(esCursor)
-    //         this.ctxGr.fillStyle = this.colorValorCursor;
-    //     else
-    //         if(esManual)
-    //             this.ctxGr.fillStyle = this.colorValorManual;
-    //         else
-    //             this.ctxGr.fillStyle = this.colorValorAutomatico;
-    //     this.ctxGr.fillText(valor,
-    //                         (x*this.dimensiones.celda.ancho)-3,
-    //                         (y*this.dimensiones.celda.alto)+5);
-    // }
 
-    this.pintaValorCelda = function(coordenada)//x,y,valor,esCursor,esManual)
+    this.pintaValorCelda = function(coordenada)
     {
-        this.borraContenidoCelda(coordenada);
         this.ctxGr.font = "12px Arial";
         var valor = this.celdas[coordenada.llave()];
         if(valor == undefined)
-            return;
+        return;
         if(this.cursor.coordenada == coordenada)
             this.ctxGr.fillStyle = this.colorValorCursor;
         else
-            if(valor.split(',')[1] == 1)
+            if(valor.split(',')[1] == 0)
                 this.ctxGr.fillStyle = this.colorValorManual;
             else
                 this.ctxGr.fillStyle = this.colorValorAutomatico;
